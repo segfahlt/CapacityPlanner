@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36518.9
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CapacityPlanner", "CapacityPlanner\CapacityPlanner.csproj", "{DECC5582-D3CE-4999-AC54-2C9C7742DC77}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CapacityPlanner.Client", "CapacityPlanner.Client\CapacityPlanner.Client.csproj", "{3EF1721E-E8DF-49CD-905F-28FBE730F85E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.CapacityPlanner", "Common.CapacityPlanner\Common.CapacityPlanner.csproj", "{C0B4E813-837C-E222-928A-72A83ABC58B4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Persist.CapacityPlanner", "Persist.CapacityPlanner\Persist.CapacityPlanner.csproj", "{52D1D4C9-F0C5-1926-F3A5-C6A1CA1E926E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Services.CapacityPlanner", "Services.CapacityPlanner\Services.CapacityPlanner.csproj", "{8B2A6C18-9ACE-B4E9-F0C6-122EADA85C02}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+	ProjectSection(SolutionItems) = preProject
+		ScaffoldDb.ps1 = ScaffoldDb.ps1
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DECC5582-D3CE-4999-AC54-2C9C7742DC77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DECC5582-D3CE-4999-AC54-2C9C7742DC77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DECC5582-D3CE-4999-AC54-2C9C7742DC77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DECC5582-D3CE-4999-AC54-2C9C7742DC77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3EF1721E-E8DF-49CD-905F-28FBE730F85E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3EF1721E-E8DF-49CD-905F-28FBE730F85E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3EF1721E-E8DF-49CD-905F-28FBE730F85E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3EF1721E-E8DF-49CD-905F-28FBE730F85E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0B4E813-837C-E222-928A-72A83ABC58B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0B4E813-837C-E222-928A-72A83ABC58B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0B4E813-837C-E222-928A-72A83ABC58B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0B4E813-837C-E222-928A-72A83ABC58B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52D1D4C9-F0C5-1926-F3A5-C6A1CA1E926E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52D1D4C9-F0C5-1926-F3A5-C6A1CA1E926E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52D1D4C9-F0C5-1926-F3A5-C6A1CA1E926E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52D1D4C9-F0C5-1926-F3A5-C6A1CA1E926E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B2A6C18-9ACE-B4E9-F0C6-122EADA85C02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B2A6C18-9ACE-B4E9-F0C6-122EADA85C02}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B2A6C18-9ACE-B4E9-F0C6-122EADA85C02}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B2A6C18-9ACE-B4E9-F0C6-122EADA85C02}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {07A72D9D-B74D-48E1-90EB-6A95F9CFD4D9}
+	EndGlobalSection
+EndGlobal

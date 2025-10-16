@@ -1,0 +1,65 @@
+digraph LyricCapacityModel {
+    graph [rankdir=LR, fontsize=10, labelloc=t, label="Lyric Capacity Planning Data Model"];
+    node [shape=box, style=rounded, fontname="Segoe UI", fontsize=9];
+
+    // Core Entities
+    Role [label="Role\nDefines functional position and utilization target"];
+    Skill [label="Skill\nCanonical technical or functional skill"];
+    Person [label="Person\nResource with employment type and location"];
+    Platform [label="Platform\nTop-level product family"];
+    Module [label="Module\nSubsystem within a platform"];
+    Implementation [label="Implementation\nClient-specific deployment"];
+    Workstream [label="Workstream\nOperational grouping of work"];
+    Demand [label="Demand\nRequired FTE by role and period"];
+    DemandSkill [label="DemandSkill\nSkills required by a demand"];
+    Capacity [label="Capacity\nAvailable FTE supply by role and period"];
+    Allocation [label="Allocation\nPlanned % assignment of person to workstream"];
+    Actual [label="Actual\nRecorded effort in hours or FTE"];
+    Scenario [label="Scenario\nPlanning or forecasting context"];
+    ForecastResult [label="ForecastResult\nComputed role-level capacity results"];
+    TimePeriod [label="TimePeriod\nNormalized reporting window (month, quarter, etc.)"];
+
+    // Relationships
+    Platform -> Module [label="contains"];
+    Platform -> Implementation [label="deployed as"];
+    Module -> Implementation [label="implements for client"];
+
+    Implementation -> Workstream [label="drives work"];
+    Workstream -> Demand [label="generates demand"];
+    Workstream -> Allocation [label="hosts allocations"];
+    Workstream -> Actual [label="records actuals"];
+
+    Role -> Demand [label="required role"];
+    Role -> Capacity [label="defines capacity"];
+    Role -> ForecastResult [label="analyzed in forecast"];
+
+    Skill -> PersonSkill [label="owned by person"];
+    Skill -> DemandSkill [label="required by demand"];
+
+    Person -> Allocation [label="assigned to"];
+    Person -> Actual [label="logs work"];
+    Person -> PersonSkill [label="has skills"];
+    Person -> Scenario [label="creates scenario"];
+
+    Demand -> DemandSkill [label="requires skill"];
+    Demand -> Workstream [label="belongs to workstream"];
+
+    Capacity -> Role [label="capacity for role"];
+    Allocation -> Workstream [label="assignment"];
+    Actual -> Workstream [label="execution"];
+
+    Scenario -> ForecastResult [label="produces forecast"];
+    ForecastResult -> Role [label="evaluates role"];
+    ForecastResult -> Scenario [label="belongs to scenario"];
+
+    // TimePeriod normalization
+    TimePeriod -> Demand [label="standardized period"];
+    TimePeriod -> Capacity [label="standardized period"];
+    TimePeriod -> Allocation [label="standardized period"];
+    TimePeriod -> Actual [label="standardized period"];
+    TimePeriod -> ForecastResult [label="standardized period"];
+
+    // Aesthetics
+    edge [fontname="Segoe UI", fontsize=8, color="#555555", arrowsize=0.7];
+    node [color="#444444", fillcolor="#E6E6E6", style="filled,rounded"];
+}
