@@ -1,13 +1,12 @@
 using System.Net;
-using CapacityPlanner.Api.Tests.Infrastructure;
 using FluentAssertions;
 
 namespace CapacityPlanner.Api.Tests;
 
-public class RolesApiTests : IClassFixture<ApiFactory>
+public class RolesApiTests : IClassFixture<Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program>>
 {
-    private readonly ApiFactory _factory;
-    public RolesApiTests(ApiFactory factory) => _factory = factory;
+    private readonly Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program> _factory;
+    public RolesApiTests(Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program> factory) => _factory = factory;
 
     [Fact]
     public async Task Get_Roles_ReturnsOk()

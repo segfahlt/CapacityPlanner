@@ -14,7 +14,8 @@ public static class DependencyInjection
     {
 		// Register application-layer services here
 		services.AddCommonCapacityPlanner();
-		services.AddScoped<IScenarioService, ScenarioService>();
+        services.AddScoped<IScenarioService, ScenarioService>();
+        services.AddScoped<Abstraction.IRoleService, RoleService>();
 
 
 		return services;

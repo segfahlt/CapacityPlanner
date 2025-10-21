@@ -1,9 +1,6 @@
 -- Auto-generated build script
--- Generated: 2025-10-16 07:29:51Z
+-- Generated: 2025-10-21 13:31:27Z
 -- Drops tables in reverse order of manifest, then recreates in manifest order
-
-Use CP
-go
 IF OBJECT_ID(N'[dbo].[ForecastResult]', N'U') IS NOT NULL DROP TABLE [dbo].[ForecastResult];
 IF OBJECT_ID(N'[dbo].[Scenario]', N'U') IS NOT NULL DROP TABLE [dbo].[Scenario];
 IF OBJECT_ID(N'[dbo].[Actual]', N'U') IS NOT NULL DROP TABLE [dbo].[Actual];

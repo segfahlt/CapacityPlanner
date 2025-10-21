@@ -1,34 +1,41 @@
 using System.Text;
-using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Containers;
+
+using Common.CapacityPlanner;
+
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Persist.CapacityPlanner.DbModel;
-
-using Testcontainers.MsSql;
 
 namespace Services.CapacityPlanner.Tests.Infrastructure;
 
 public class SqlServerContainerFixture : IAsyncLifetime
 {
-    public MsSqlContainer Container { get; }
-    public string ConnectionString => Container.GetConnectionString();
+    public string ServerConnectionString { get; private set; } = string.Empty;
+    public string DatabaseConnectionString { get; private set; } = string.Empty;
 
-    public SqlServerContainerFixture()
-    {
-        Container = new MsSqlBuilder()
-            .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
-            .WithPassword("yourStrong(!)Password")
-            .Build();
-    }
+    public SqlServerContainerFixture() { }
 
     public async Task InitializeAsync()
     {
-        await Container.StartAsync();
+        // Determine server connection string
+        // Prefer env var CAPACITYPLANNER_TEST_SQL, else LocalDB
+        var baseCnn = Environment.GetEnvironmentVariable("CAPACITYPLANNER_TEST_SQL");
+        if (string.IsNullOrWhiteSpace(baseCnn))
+        {
+            // Default LocalDB
+            var sb = new SqlConnectionStringBuilder
+            {
+                DataSource = @".",
+                IntegratedSecurity = true,
+                TrustServerCertificate = true,
+                MultipleActiveResultSets = true
+            };
+            baseCnn = sb.ToString();
+        }
 
         // Create database and apply schema from Tables.build.sql if present
-        var dbName = "CapacityPlannerTest";
-        var master = new SqlConnectionStringBuilder(ConnectionString) { InitialCatalog = "master" }.ToString();
+        var dbName = $"CapacityPlannerTest_{Guid.NewGuid():N}";
+        var master = new SqlConnectionStringBuilder(baseCnn) { InitialCatalog = "CP" }.ToString();
         await using var conn = new SqlConnection(master);
         await conn.OpenAsync();
         await using (var cmd = conn.CreateCommand())
@@ -37,7 +44,8 @@ public class SqlServerContainerFixture : IAsyncLifetime
             await cmd.ExecuteNonQueryAsync();
         }
 
-        var dbCnn = new SqlConnectionStringBuilder(ConnectionString) { InitialCatalog = dbName }.ToString();
+        ServerConnectionString = baseCnn;
+        DatabaseConnectionString = new SqlConnectionStringBuilder(baseCnn) { InitialCatalog = dbName }.ToString();
 
         // Try load build script from repo
         var repoRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
@@ -45,31 +53,43 @@ public class SqlServerContainerFixture : IAsyncLifetime
         if (File.Exists(buildScriptPath))
         {
             var sql = await File.ReadAllTextAsync(buildScriptPath, Encoding.UTF8);
-            await using var dbConn = new SqlConnection(dbCnn);
+            await using var dbConn = new SqlConnection(DatabaseConnectionString);
             await dbConn.OpenAsync();
+            await using var c = dbConn.CreateCommand();
+            c.CommandTimeout = 120;
             // Split on GO
-            var batches = sql.Split(new[]{"\r\nGO\r\n", "\nGO\n", "\r\nGO\n", "\nGO\r\n"}, StringSplitOptions.RemoveEmptyEntries);
+            var batches = sql.Split(new[] { "GO\r\n"}, StringSplitOptions.RemoveEmptyEntries);
             foreach (var batch in batches)
             {
-                await using var c = dbConn.CreateCommand();
-                c.CommandTimeout = 120;
-                c.CommandText = batch;
-                await c.ExecuteNonQueryAsync();
+                c.CommandText = batch.Trim();
+                if(string.IsNullOrWhiteSpace(c.CommandText)) continue;
+				await c.ExecuteNonQueryAsync();
             }
         }
     }
 
     public async Task DisposeAsync()
     {
-        await Container.StopAsync();
-        await Container.DisposeAsync();
+        if (!string.IsNullOrWhiteSpace(DatabaseConnectionString))
+        {
+            try
+            {
+                var dbName = new SqlConnectionStringBuilder(DatabaseConnectionString).InitialCatalog;
+                var master = new SqlConnectionStringBuilder(ServerConnectionString) { InitialCatalog = "master" }.ToString();
+                await using var conn = new SqlConnection(master);
+                await conn.OpenAsync();
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = $"IF DB_ID('{dbName}') IS NOT NULL BEGIN ALTER DATABASE [{dbName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [{dbName}]; END";
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch { /* best effort */ }
+        }
     }
 
     public DbContextOptions<CapacityPlannerContext> CreateOptions()
     {
-        var cnn = new SqlConnectionStringBuilder(ConnectionString) { InitialCatalog = "CapacityPlannerTest" }.ToString();
         var builder = new DbContextOptionsBuilder<CapacityPlannerContext>();
-        builder.UseSqlServer(cnn);
+        builder.UseSqlServer(DatabaseConnectionString);
         return builder.Options;
     }
 }

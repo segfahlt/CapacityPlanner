@@ -14,35 +14,44 @@ public static class Endpoints
 
         // Roles
         var roles = api.MapGroup("/roles");
-        roles.MapGet("", async (CapacityPlannerContext db, CancellationToken ct) =>
-            await db.Role.AsNoTracking().OrderBy(r => r.Name).ToListAsync(ct));
-        roles.MapGet("/{id:guid}", async (Guid id, CapacityPlannerContext db, CancellationToken ct) =>
-            await db.Role.AsNoTracking().FirstOrDefaultAsync(r => r.RoleId == id, ct) is { } r
-                ? Results.Ok(r)
-                : Results.NotFound());
-        roles.MapPost("", async (Role role, CapacityPlannerContext db, CancellationToken ct) =>
+        roles.MapGet("", async (Services.CapacityPlanner.Abstraction.IRoleService svc, CancellationToken ct) =>
+            Results.Ok(await svc.ListAsync(ct)));
+        roles.MapGet("/{id:guid}", async (Guid id, Services.CapacityPlanner.Abstraction.IRoleService svc, CancellationToken ct) =>
+            await svc.GetAsync(id, ct) is { } r ? Results.Ok(r) : Results.NotFound());
+        roles.MapPost("", async (Role role, Services.CapacityPlanner.Abstraction.IRoleService svc, CancellationToken ct) =>
         {
-            db.Role.Add(role);
-            await db.SaveChangesAsync(ct);
-            return Results.Created($"/api/roles/{role.RoleId}", role);
+            try
+            {
+                var id = await svc.CreateAsync(role.Name!, role.DefaultUtilizationTarget, ct);
+                return Results.Created($"/api/roles/{id}", new { id });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.Conflict(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(new { message = ex.Message });
+            }
         });
-        roles.MapPut("/{id:guid}", async (Guid id, Role update, CapacityPlannerContext db, CancellationToken ct) =>
+        roles.MapPut("/{id:guid}", async (Guid id, Role update, Services.CapacityPlanner.Abstraction.IRoleService svc, CancellationToken ct) =>
         {
-            var existing = await db.Role.FindAsync([id], ct);
-            if (existing is null) return Results.NotFound();
-            existing.Name = update.Name;
-            existing.DefaultUtilizationTarget = update.DefaultUtilizationTarget;
-            await db.SaveChangesAsync(ct);
-            return Results.NoContent();
+            try
+            {
+                var ok = await svc.UpdateAsync(id, update.Name!, update.DefaultUtilizationTarget, ct);
+                return ok ? Results.NoContent() : Results.NotFound();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.Conflict(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(new { message = ex.Message });
+            }
         });
-        roles.MapDelete("/{id:guid}", async (Guid id, CapacityPlannerContext db, CancellationToken ct) =>
-        {
-            var existing = await db.Role.FindAsync([id], ct);
-            if (existing is null) return Results.NotFound();
-            db.Role.Remove(existing);
-            await db.SaveChangesAsync(ct);
-            return Results.NoContent();
-        });
+        roles.MapDelete("/{id:guid}", async (Guid id, Services.CapacityPlanner.Abstraction.IRoleService svc, CancellationToken ct) =>
+            (await svc.DeleteAsync(id, ct)) ? Results.NoContent() : Results.NotFound());
 
         // Skills
         var skills = api.MapGroup("/skills");

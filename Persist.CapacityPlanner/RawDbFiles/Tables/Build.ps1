@@ -56,9 +56,6 @@ $header = @"
 -- Auto-generated build script
 -- Generated: $(Get-Date -Format 'u')
 -- Drops tables in reverse order of manifest, then recreates in manifest order
-
-Use CP
-go
 "@
 [void]$dropBuilder.AppendLine($header)
 
