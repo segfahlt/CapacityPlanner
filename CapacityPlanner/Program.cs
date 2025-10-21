@@ -1,5 +1,6 @@
 using CapacityPlanner.Client.Pages;
 using CapacityPlanner.Components;
+using CapacityPlanner.Api;
 using MudBlazor.Services;
 
 namespace CapacityPlanner
@@ -42,6 +43,9 @@ namespace CapacityPlanner
             app.MapRazorComponents<App>()
                 .AddInteractiveWebAssemblyRenderMode()
                 .AddAdditionalAssemblies(typeof(Client._Imports).Assembly);
+
+            // Minimal API endpoints
+            app.MapCapacityPlannerApi();
 
             app.Run();
         }

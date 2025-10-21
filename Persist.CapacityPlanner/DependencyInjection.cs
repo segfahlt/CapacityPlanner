@@ -1,3 +1,5 @@
+using Common.CapacityPlanner;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +29,8 @@ public static class DependencyInjection
             options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure());
         });
 
-        return services;
+        services.AddCommonCapacityPlanner();
+        
+		return services;
     }
 }

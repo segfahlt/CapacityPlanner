@@ -1,14 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Persist.CapacityPlanner.DbModel;
 
+using Services.CapacityPlanner.Abstraction;
+
 namespace Services.CapacityPlanner;
 
-public interface IScenarioService
-{
-    Task<Guid> CreateScenarioAsync(string name, string? description, Guid? createdBy, CancellationToken ct = default);
-}
-
-internal sealed class ScenarioService : IScenarioService
+public sealed class ScenarioService : IScenarioService
 {
     private readonly CapacityPlannerContext _db;
 
