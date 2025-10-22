@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Persist.CapacityPlanner.DbModel;
 using Services.CapacityPlanner.Abstraction;
 using Services.CapacityPlanner.Tests.Infrastructure;
+using Common.CapacityPlanner.Dto;
 
 namespace Services.CapacityPlanner.Tests.Roles;
 
@@ -23,7 +24,7 @@ public class RoleServiceTests
     public async Task Create_Succeeds_And_Persists()
     {
         var svc = CreateSvc();
-        var id = await svc.CreateAsync("AutoTest Planner", 0.85m);
+        var id = await svc.CreateAsync(new RoleDto { Name = "AutoTest Planner", DefaultUtilizationTarget = 0.85m });
         var list = await svc.ListAsync();
         list.Should().Contain(x => x.RoleId == id && x.Name == "AutoTest Planner");
     }
@@ -32,8 +33,8 @@ public class RoleServiceTests
     public async Task Create_DuplicateName_Throws()
     {
         var svc = CreateSvc();
-        await svc.CreateAsync("AutoTest Dev", 0.85m);
-        Func<Task> act = () => svc.CreateAsync("AutoTest Dev", 0.9m);
+        await svc.CreateAsync(new RoleDto { Name = "AutoTest Dev", DefaultUtilizationTarget = 0.85m });
+        Func<Task> act = () => svc.CreateAsync(new RoleDto { Name = "AutoTest Dev", DefaultUtilizationTarget = 0.9m });
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
@@ -41,8 +42,8 @@ public class RoleServiceTests
     public async Task Update_ChangesValues()
     {
         var svc = CreateSvc();
-        var id = await svc.CreateAsync("AutoTest QA", 0.85m);
-        var ok = await svc.UpdateAsync(id, "AutoTest QA Engineer", 0.8m);
+        var id = await svc.CreateAsync(new RoleDto { Name = "AutoTest QA", DefaultUtilizationTarget = 0.85m });
+        var ok = await svc.UpdateAsync(new RoleDto { RoleId = id, Name = "AutoTest QA Engineer", DefaultUtilizationTarget = 0.8m });
         ok.Should().BeTrue();
 
         var ctx = new CapacityPlannerContext(_fixture.CreateOptions());
@@ -55,7 +56,7 @@ public class RoleServiceTests
     public async Task Delete_RemovesRow()
     {
         var svc = CreateSvc();
-        var id = await svc.CreateAsync("AutoTest TempRole", 0.5m);
+        var id = await svc.CreateAsync(new RoleDto { Name = "AutoTest TempRole", DefaultUtilizationTarget = 0.5m });
         var ok = await svc.DeleteAsync(id);
         ok.Should().BeTrue();
 
