@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Persist.CapacityPlanner.DbModel;
 using Services.CapacityPlanner.Abstraction;
 using Services.CapacityPlanner.Tests.Infrastructure;
+using Common.CapacityPlanner.Dto;
 
 namespace Services.CapacityPlanner.Tests.Product;
 
@@ -24,8 +25,8 @@ public class ModuleServiceTests
     {
         var (svc, ctx) = CreateSvc();
         var platformId = await ctx.Platform.Select(p => p.PlatformId).FirstAsync();
-        var id = await svc.CreateAsync(platformId, "AutoTest Module A", "desc", "Active");
-        var ok = await svc.UpdateAsync(id, "AutoTest Module A2", "d2", "Planned");
+        var id = await svc.CreateAsync(new ModuleDto { PlatformId = platformId, Name = "AutoTest Module A", Description = "desc", Status = "Active" });
+        var ok = await svc.UpdateAsync(new ModuleDto { ModuleId = id, PlatformId = platformId, Name = "AutoTest Module A2", Description = "d2", Status = "Planned" });
         ok.Should().BeTrue();
 
         var updated = await ctx.Module.AsNoTracking().FirstAsync(m => m.ModuleId == id);
@@ -38,8 +39,8 @@ public class ModuleServiceTests
     {
         var (svc, ctx) = CreateSvc();
         var platformId = await ctx.Platform.Select(p => p.PlatformId).FirstAsync();
-        await svc.CreateAsync(platformId, "AutoTest Module B", null, null);
-        Func<Task> act = () => svc.CreateAsync(platformId, "AutoTest Module B", null, null);
+        await svc.CreateAsync(new ModuleDto { PlatformId = platformId, Name = "AutoTest Module B" });
+        Func<Task> act = () => svc.CreateAsync(new ModuleDto { PlatformId = platformId, Name = "AutoTest Module B" });
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
 }

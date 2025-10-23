@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Persist.CapacityPlanner.DbModel;
 using Services.CapacityPlanner.Abstraction;
 using Services.CapacityPlanner.Tests.Infrastructure;
+using Common.CapacityPlanner.Dto;
 
 namespace Services.CapacityPlanner.Tests.Product;
 
@@ -23,8 +24,8 @@ public class PlatformServiceTests
     public async Task Create_And_Update()
     {
         var svc = CreateSvc(out var ctx);
-        var id = await svc.CreateAsync("AutoTest Platform A", "desc");
-        var ok = await svc.UpdateAsync(id, "AutoTest Platform A2", "d2");
+        var id = await svc.CreateAsync(new PlatformDto { Name = "AutoTest Platform A", Description = "desc" });
+        var ok = await svc.UpdateAsync(new PlatformDto { PlatformId = id, Name = "AutoTest Platform A2", Description = "d2" });
         ok.Should().BeTrue();
         var updated = await ctx.Platform.AsNoTracking().FirstAsync(p => p.PlatformId == id);
         updated.Name.Should().Be("AutoTest Platform A2");
@@ -34,8 +35,8 @@ public class PlatformServiceTests
     public async Task DuplicateName_Throws()
     {
         var svc = CreateSvc(out _);
-        await svc.CreateAsync("AutoTest Platform B", null);
-        Func<Task> act = () => svc.CreateAsync("AutoTest Platform B", null);
+        await svc.CreateAsync(new PlatformDto { Name = "AutoTest Platform B" });
+        Func<Task> act = () => svc.CreateAsync(new PlatformDto { Name = "AutoTest Platform B" });
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
 }
