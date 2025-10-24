@@ -23,12 +23,6 @@ public static class DependencyInjection
             });
         });
 
-        // Optional: factory for background operations or explicit context creation
-        services.AddDbContextFactory<CapacityPlannerContext>(options =>
-        {
-            options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure());
-        });
-
         services.AddCommonCapacityPlanner();
         
 		return services;
