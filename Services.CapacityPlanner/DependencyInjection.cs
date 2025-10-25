@@ -22,6 +22,7 @@ public static class DependencyInjection
         services.AddScoped<Abstraction.IPlatformService, PlatformService>();
         services.AddScoped<Abstraction.IModuleService, ModuleService>();
         services.AddScoped<Abstraction.IImplementationTemplateService, ImplementationTemplateService>();
+        services.AddScoped<Abstraction.IImplementationService, ImplementationService>();
 
 
 		return services;

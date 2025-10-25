@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Persist.CapacityPlanner.DbModel;
 using Persist.CapacityPlanner.DbModel.Entities;
+using Services.CapacityPlanner.Abstraction;
 
 namespace CapacityPlanner.Api;
 
@@ -12,6 +13,63 @@ public static class Endpoints
     {
         var api = routes.MapGroup("/api");
 
+        // Platforms API (for TreeNav)
+        api.MapGet("/platforms", async (IPlatformService svc, CancellationToken ct) => Results.Ok(await svc.ListAsync(ct)));
+
+        // Modules API filtered by platformId
+        api.MapGet("/modules", async (Guid platformId, IModuleService svc, CancellationToken ct) =>
+        {
+            var mods = await svc.ListAsync(ct);
+            return Results.Ok(mods.Where(m => m.PlatformId == platformId));
+        });
+
+        // Implementations API filtered by moduleId + CRUD
+        api.MapGet("/implementations", async (Guid moduleId, IImplementationService svc, CancellationToken ct) =>
+        {
+            var impls = await svc.ListAsync(moduleId: moduleId, ct: ct);
+            return Results.Ok(impls);
+        });
+        api.MapGet("/implementations/{id:guid}", async (Guid id, IImplementationService svc, CancellationToken ct) =>
+        {
+            var dto = await svc.GetAsync(id, ct);
+            return dto is null ? Results.NotFound() : Results.Ok(dto);
+        });
+        api.MapPost("/implementations", async (Common.CapacityPlanner.Dto.ImplementationDto dto, IImplementationService svc, CancellationToken ct) =>
+        {
+            try
+            {
+                var id = await svc.CreateAsync(dto, ct);
+                return Results.Created($"/api/implementations/{id}", new { id });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.Conflict(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(new { message = ex.Message });
+            }
+        });
+        api.MapPut("/implementations/{id:guid}", async (Guid id, Common.CapacityPlanner.Dto.ImplementationDto dto, IImplementationService svc, CancellationToken ct) =>
+        {
+            try
+            {
+                dto.ImplementationId = id;
+                var ok = await svc.UpdateAsync(dto, ct);
+                return ok ? Results.NoContent() : Results.NotFound();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.Conflict(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(new { message = ex.Message });
+            }
+        });
+        api.MapDelete("/implementations/{id:guid}", async (Guid id, IImplementationService svc, CancellationToken ct) => (await svc.DeleteAsync(id, ct)) ? Results.NoContent() : Results.NotFound());
+
+        // existing endpoints ...
         // Roles
         var roles = api.MapGroup("/roles");
         roles.MapGet("", async (Services.CapacityPlanner.Abstraction.IRoleService svc, CancellationToken ct) => Results.Ok(await svc.ListAsync(ct)));
@@ -49,14 +107,12 @@ public static class Endpoints
                 return Results.BadRequest(new { message = ex.Message });
             }
         });
-        roles.MapDelete("/{id:guid}", async (Guid id, Services.CapacityPlanner.Abstraction.IRoleService svc, CancellationToken ct) =>
-            (await svc.DeleteAsync(id, ct)) ? Results.NoContent() : Results.NotFound());
+        roles.MapDelete("/{id:guid}", async (Guid id, Services.CapacityPlanner.Abstraction.IRoleService svc, CancellationToken ct) => (await svc.DeleteAsync(id, ct)) ? Results.NoContent() : Results.NotFound());
 
         // Skills
         var skills = api.MapGroup("/skills");
         skills.MapGet("", async (Services.CapacityPlanner.Abstraction.ISkillService svc, CancellationToken ct) => Results.Ok(await svc.ListAsync(ct)));
-        skills.MapGet("/{id:guid}", async (Guid id, Services.CapacityPlanner.Abstraction.ISkillService svc, CancellationToken ct) =>
-            await svc.GetAsync(id, ct) is { } s ? Results.Ok(s) : Results.NotFound());
+        skills.MapGet("/{id:guid}", async (Guid id, Services.CapacityPlanner.Abstraction.ISkillService svc, CancellationToken ct) => await svc.GetAsync(id, ct) is { } s ? Results.Ok(s) : Results.NotFound());
         skills.MapPost("", async (Common.CapacityPlanner.Dto.SkillDto skill, Services.CapacityPlanner.Abstraction.ISkillService svc, CancellationToken ct) =>
         {
             try
@@ -90,13 +146,11 @@ public static class Endpoints
                 return Results.BadRequest(new { message = ex.Message });
             }
         });
-        skills.MapDelete("/{id:guid}", async (Guid id, Services.CapacityPlanner.Abstraction.ISkillService svc, CancellationToken ct) =>
-            (await svc.DeleteAsync(id, ct)) ? Results.NoContent() : Results.NotFound());
+        skills.MapDelete("/{id:guid}", async (Guid id, Services.CapacityPlanner.Abstraction.ISkillService svc, CancellationToken ct) => (await svc.DeleteAsync(id, ct)) ? Results.NoContent() : Results.NotFound());
 
         // Scenarios
         var scenarios = api.MapGroup("/scenarios");
-        scenarios.MapGet("", async (CapacityPlannerContext db, CancellationToken ct) =>
-            await db.Scenario.AsNoTracking().OrderByDescending(s => s.CreatedOn).ToListAsync(ct));
+        scenarios.MapGet("", async (CapacityPlannerContext db, CancellationToken ct) => await db.Scenario.AsNoTracking().OrderByDescending(s => s.CreatedOn).ToListAsync(ct));
         scenarios.MapPost("", async (Scenario scenario, CapacityPlannerContext db, CancellationToken ct) =>
         {
             db.Scenario.Add(scenario);
@@ -107,8 +161,7 @@ public static class Endpoints
         // People
         var people = api.MapGroup("/person");
         people.MapGet("", async (Services.CapacityPlanner.Abstraction.IPersonService svc, CancellationToken ct) => Results.Ok(await svc.ListAsync(ct)));
-        people.MapGet("/{id:guid}", async (Guid id, Services.CapacityPlanner.Abstraction.IPersonService svc, CancellationToken ct) =>
-            await svc.GetAsync(id, ct) is { } p ? Results.Ok(p) : Results.NotFound());
+        people.MapGet("/{id:guid}", async (Guid id, Services.CapacityPlanner.Abstraction.IPersonService svc, CancellationToken ct) => await svc.GetAsync(id, ct) is { } p ? Results.Ok(p) : Results.NotFound());
         people.MapPost("", async (Common.CapacityPlanner.Dto.PersonDto person, Services.CapacityPlanner.Abstraction.IPersonService svc, CancellationToken ct) =>
         {
             try
@@ -142,8 +195,7 @@ public static class Endpoints
                 return Results.BadRequest(new { message = ex.Message });
             }
         });
-        people.MapDelete("/{id:guid}", async (Guid id, Services.CapacityPlanner.Abstraction.IPersonService svc, CancellationToken ct) =>
-            (await svc.DeleteAsync(id, ct)) ? Results.NoContent() : Results.NotFound());
+        people.MapDelete("/{id:guid}", async (Guid id, Services.CapacityPlanner.Abstraction.IPersonService svc, CancellationToken ct) => (await svc.DeleteAsync(id, ct)) ? Results.NoContent() : Results.NotFound());
 
         // Implementation Templates
         var templates = api.MapGroup("/implementation-templates");

@@ -3,7 +3,7 @@ using Persist.CapacityPlanner.DbModel.Entities;
 
 namespace Services.CapacityPlanner.Mapping;
 
-public static class DtoMappers
+public static partial class DtoMappers
 {
     // Role
     public static RoleDto ToDto(this Role e) => new() { RoleId = e.RoleId, Name = e.Name, DefaultUtilizationTarget = e.DefaultUtilizationTarget };

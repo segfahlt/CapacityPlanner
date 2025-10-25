@@ -1,0 +1,20 @@
+@using MudBlazor
+
+<MudPaper Class="pa-2" Style="height:100%;">
+ <MudTreeView T="TreeNav.TreeNode"
+ Items="@_roots"
+ LoadChildren="LoadChildrenAsync"
+ @bind-SelectedValue="_selected"
+ CanActivateNodes="true"
+ Hover="true"
+ Dense="true"
+ ExpandedIcon="@Icons.Material.Filled.ExpandMore"
+ CollapseIcon="@Icons.Material.Filled.ChevronRight">
+ <ItemTemplate Context="ctx">
+ <MudTreeViewItemContent>
+ <MudIcon Icon="@GetIcon(ctx.Value.Type)" Class="mr-2" />
+ @ctx.Value.Text
+ </MudTreeViewItemContent>
+ </ItemTemplate>
+ </MudTreeView>
+</MudPaper>
