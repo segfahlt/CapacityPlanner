@@ -1,0 +1,82 @@
+@using System.Net.Http.Json
+@using Common.CapacityPlanner.Dto
+@using MudBlazor
+
+<MudNavMenu>
+	@if (_loading)
+	{
+		<MudProgressLinear Indeterminate Color="Color.Primary" Class="mb-2" />
+	}
+	else if (_error is not null)
+	{
+		<MudAlert Severity="Severity.Error">@_error</MudAlert>
+	}
+	else
+	{
+		@foreach (var p in _platforms)
+		{
+			<MudNavGroup Title="@p.Name" Icon="@Icons.Material.Filled.Layers" Expanded="false">
+				@* <MudNavLink Href="@($"/platforms/{p.PlatformId}")" Icon="@Icons.Material.Filled.Dashboard">Overview</MudNavLink> *@
+
+				<MudNavGroup Title="Modules" Icon="@Icons.Material.Filled.ViewModule">
+					@foreach (var module in _platformModules[p.PlatformId])
+					{
+						<MudNavLink>@module.Name</MudNavLink>
+						@* <MudNavLink Href="@($"/platforms/{p.PlatformId}/modules")" Icon="@Icons.Material.Filled.ViewModule">Modules</MudNavLink> *@
+					}
+				</MudNavGroup>
+
+				<MudNavGroup Title="Implementations" Icon="@Icons.Material.Filled.BuildCircle">
+					<MudNavLink Href="@($"/platforms/{p.PlatformId}/implementations")" Icon="@Icons.Material.Filled.List">All</MudNavLink>
+				</MudNavGroup>
+
+				<MudNavGroup Title="Templates" Icon="@Icons.Material.Filled.Article">
+					<MudNavLink Href="@($"/platforms/{p.PlatformId}/templates/implementations")" Icon="@Icons.Material.Filled.Article">Implementation Templates</MudNavLink>
+				</MudNavGroup>
+
+				<MudNavGroup Title="Planning" Icon="@Icons.Material.Filled.Timeline">
+					<MudNavGroup Title="Demand" Icon="@Icons.Material.Filled.TrendingUp">
+						<MudNavLink Href="@($"/platforms/{p.PlatformId}/planning/demand")">Summary</MudNavLink>
+					</MudNavGroup>
+					<MudNavGroup Title="Capacity" Icon="@Icons.Material.Filled.Inventory">
+						<MudNavLink Href="@($"/platforms/{p.PlatformId}/planning/capacity")">Summary</MudNavLink>
+					</MudNavGroup>
+					<MudNavGroup Title="Allocations" Icon="@Icons.Material.Filled.PieChart">
+						<MudNavLink Href="@($"/platforms/{p.PlatformId}/planning/allocations")">Summary</MudNavLink>
+					</MudNavGroup>
+					<MudNavGroup Title="Actuals" Icon="@Icons.Material.Filled.AccessTime">
+						<MudNavLink Href="@($"/platforms/{p.PlatformId}/planning/actuals")">Summary</MudNavLink>
+					</MudNavGroup>
+				</MudNavGroup>
+			</MudNavGroup>
+		}
+	}
+</MudNavMenu>
+
+@code {
+	[Inject] public required HttpClient Http { get; set; }
+
+	private bool _loading = true;
+	private string? _error;
+	private List<PlatformDto> _platforms = new();
+	private List<ModuleDto> _modules = new();
+	private Dictionary<Guid, List<ModuleDto>> _platformModules = new();
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			_platforms = await Http.GetFromJsonAsync<List<PlatformDto>>("/api/platforms") ?? new();
+			foreach(var platform in _platforms)
+				_platformModules.Add(platform.PlatformId, (await Http.GetFromJsonAsync<List<ModuleDto>>($"/api/modules?platformId={platform.PlatformId}")??new()));
+
+		}
+		catch (Exception ex)
+		{
+			_error = ex.Message;
+		}
+		finally
+		{
+			_loading = false;
+		}
+	}
+}

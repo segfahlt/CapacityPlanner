@@ -1,3 +1,5 @@
+using System.Net.Http;
+using Microsoft.AspNetCore.Components;
 using MudBlazor.Services;
 using CapacityPlanner.Client.Pages;
 using CapacityPlanner.Components;
@@ -14,6 +16,14 @@ namespace CapacityPlanner
             builder.Services.AddMudServices();
             builder.Services.AddRazorComponents()
                 .AddInteractiveWebAssemblyComponents();
+
+			// Register HttpClient for components (TreeNav) with BaseAddress from NavigationManager
+			builder.Services.AddHttpClient();
+			builder.Services.AddScoped<HttpClient>(sp =>
+			{
+				var nav = sp.GetRequiredService<NavigationManager>();
+				return new HttpClient { BaseAddress = new Uri(nav.BaseUri) };
+			});
 
 			// API host services only
 			builder.Services.AddCapacityPlannerServer(builder.Configuration);
