@@ -31,6 +31,186 @@ public static class Endpoints
             return Results.Ok(summary);
         });
 
+        // Lookups (CRUD per type)
+        var lookups = api.MapGroup("/lookups");
+        lookups.MapGet("/types", () => Results.Ok(new Common.CapacityPlanner.Dto.LookupTypeDto[]
+        {
+            new("allocation-type","Allocation Types"),
+            new("employment-type","Employment Types"),
+            new("implementation-category","Implementation Categories"),
+            new("status","Statuses"),
+            new("workstream-category","Workstream Categories"),
+        }));
+
+        lookups.MapGet("/{type}", async (string type, CapacityPlannerContext db, CancellationToken ct) =>
+        {
+            switch (type.ToLowerInvariant())
+            {
+                case "allocation-type":
+                    return Results.Ok(await db.LookupAllocationType.AsNoTracking().OrderBy(x=>x.AllocationType).Select(x => new Common.CapacityPlanner.Dto.LookupItemDto(x.AllocationType, x.Description)).ToListAsync(ct));
+                case "employment-type":
+                    return Results.Ok(await db.LookupEmploymentType.AsNoTracking().OrderBy(x=>x.EmploymentType).Select(x => new Common.CapacityPlanner.Dto.LookupItemDto(x.EmploymentType, x.Description)).ToListAsync(ct));
+                case "implementation-category":
+                    return Results.Ok(await db.LookupImplementationCategory.AsNoTracking().OrderBy(x=>x.ImplementationCategory).Select(x => new Common.CapacityPlanner.Dto.LookupItemDto(x.ImplementationCategory, x.Description)).ToListAsync(ct));
+                case "status":
+                    return Results.Ok(await db.LookupStatus.AsNoTracking().OrderBy(x=>x.Status).Select(x => new Common.CapacityPlanner.Dto.LookupItemDto(x.Status, x.Description)).ToListAsync(ct));
+                case "workstream-category":
+                    return Results.Ok(await db.LookupWorkstreamCategory.AsNoTracking().OrderBy(x=>x.WorkstreamCategory).Select(x => new Common.CapacityPlanner.Dto.LookupItemDto(x.WorkstreamCategory, x.Description)).ToListAsync(ct));
+                default:
+                    return Results.NotFound(new { message = $"Unknown lookup type '{type}'" });
+            }
+        });
+
+        lookups.MapPost("/{type}", async (string type, Common.CapacityPlanner.Dto.LookupItemDto item, CapacityPlannerContext db, CancellationToken ct) =>
+        {
+            if (string.IsNullOrWhiteSpace(item.Key)) return Results.BadRequest(new { message = "Key is required" });
+            try
+            {
+                switch (type.ToLowerInvariant())
+                {
+                    case "allocation-type":
+                        if (await db.LookupAllocationType.AnyAsync(x=>x.AllocationType==item.Key, ct)) return Results.Conflict(new { message = "Key already exists" });
+                        db.LookupAllocationType.Add(new LookupAllocationType { AllocationType = item.Key, Description = item.Description });
+                        break;
+                    case "employment-type":
+                        if (await db.LookupEmploymentType.AnyAsync(x=>x.EmploymentType==item.Key, ct)) return Results.Conflict(new { message = "Key already exists" });
+                        db.LookupEmploymentType.Add(new LookupEmploymentType { EmploymentType = item.Key, Description = item.Description });
+                        break;
+                    case "implementation-category":
+                        if (await db.LookupImplementationCategory.AnyAsync(x=>x.ImplementationCategory==item.Key, ct)) return Results.Conflict(new { message = "Key already exists" });
+                        db.LookupImplementationCategory.Add(new LookupImplementationCategory { ImplementationCategory = item.Key, Description = item.Description });
+                        break;
+                    case "status":
+                        if (await db.LookupStatus.AnyAsync(x=>x.Status==item.Key, ct)) return Results.Conflict(new { message = "Key already exists" });
+                        db.LookupStatus.Add(new LookupStatus { Status = item.Key, Description = item.Description });
+                        break;
+                    case "workstream-category":
+                        if (await db.LookupWorkstreamCategory.AnyAsync(x=>x.WorkstreamCategory==item.Key, ct)) return Results.Conflict(new { message = "Key already exists" });
+                        db.LookupWorkstreamCategory.Add(new LookupWorkstreamCategory { WorkstreamCategory = item.Key, Description = item.Description });
+                        break;
+                    default:
+                        return Results.NotFound(new { message = $"Unknown lookup type '{type}'" });
+                }
+                await db.SaveChangesAsync(ct);
+                return Results.Created($"/api/lookups/{type}/{item.Key}", item);
+            }
+            catch (DbUpdateException ex)
+            {
+                return Results.Conflict(new { message = ex.GetBaseException().Message });
+            }
+        });
+
+        lookups.MapPut("/{type}/{key}", async (string type, string key, Common.CapacityPlanner.Dto.LookupItemDto update, CapacityPlannerContext db, CancellationToken ct) =>
+        {
+            try
+            {
+                switch (type.ToLowerInvariant())
+                {
+                    case "allocation-type":
+                        {
+                            var e = await db.LookupAllocationType.FirstOrDefaultAsync(x=>x.AllocationType==key, ct);
+                            if (e is null) return Results.NotFound();
+                            if (!string.Equals(update.Key, key, StringComparison.Ordinal)) return Results.BadRequest(new { message = "Renaming keys is not supported" });
+                            e.Description = update.Description;
+                            break;
+                        }
+                    case "employment-type":
+                        {
+                            var e = await db.LookupEmploymentType.FirstOrDefaultAsync(x=>x.EmploymentType==key, ct);
+                            if (e is null) return Results.NotFound();
+                            if (!string.Equals(update.Key, key, StringComparison.Ordinal)) return Results.BadRequest(new { message = "Renaming keys is not supported" });
+                            e.Description = update.Description;
+                            break;
+                        }
+                    case "implementation-category":
+                        {
+                            var e = await db.LookupImplementationCategory.FirstOrDefaultAsync(x=>x.ImplementationCategory==key, ct);
+                            if (e is null) return Results.NotFound();
+                            if (!string.Equals(update.Key, key, StringComparison.Ordinal)) return Results.BadRequest(new { message = "Renaming keys is not supported" });
+                            e.Description = update.Description;
+                            break;
+                        }
+                    case "status":
+                        {
+                            var e = await db.LookupStatus.FirstOrDefaultAsync(x=>x.Status==key, ct);
+                            if (e is null) return Results.NotFound();
+                            if (!string.Equals(update.Key, key, StringComparison.Ordinal)) return Results.BadRequest(new { message = "Renaming keys is not supported" });
+                            e.Description = update.Description;
+                            break;
+                        }
+                    case "workstream-category":
+                        {
+                            var e = await db.LookupWorkstreamCategory.FirstOrDefaultAsync(x=>x.WorkstreamCategory==key, ct);
+                            if (e is null) return Results.NotFound();
+                            if (!string.Equals(update.Key, key, StringComparison.Ordinal)) return Results.BadRequest(new { message = "Renaming keys is not supported" });
+                            e.Description = update.Description;
+                            break;
+                        }
+                    default:
+                        return Results.NotFound(new { message = $"Unknown lookup type '{type}'" });
+                }
+                await db.SaveChangesAsync(ct);
+                return Results.NoContent();
+            }
+            catch (DbUpdateException ex)
+            {
+                return Results.Conflict(new { message = ex.GetBaseException().Message });
+            }
+        });
+
+        lookups.MapDelete("/{type}/{key}", async (string type, string key, CapacityPlannerContext db, CancellationToken ct) =>
+        {
+            try
+            {
+                switch (type.ToLowerInvariant())
+                {
+                    case "allocation-type":
+                        {
+                            var e = await db.LookupAllocationType.FirstOrDefaultAsync(x=>x.AllocationType==key, ct);
+                            if (e is null) return Results.NotFound();
+                            db.LookupAllocationType.Remove(e);
+                            break;
+                        }
+                    case "employment-type":
+                        {
+                            var e = await db.LookupEmploymentType.FirstOrDefaultAsync(x=>x.EmploymentType==key, ct);
+                            if (e is null) return Results.NotFound();
+                            db.LookupEmploymentType.Remove(e);
+                            break;
+                        }
+                    case "implementation-category":
+                        {
+                            var e = await db.LookupImplementationCategory.FirstOrDefaultAsync(x=>x.ImplementationCategory==key, ct);
+                            if (e is null) return Results.NotFound();
+                            db.LookupImplementationCategory.Remove(e);
+                            break;
+                        }
+                    case "status":
+                        {
+                            var e = await db.LookupStatus.FirstOrDefaultAsync(x=>x.Status==key, ct);
+                            if (e is null) return Results.NotFound();
+                            db.LookupStatus.Remove(e);
+                            break;
+                        }
+                    case "workstream-category":
+                        {
+                            var e = await db.LookupWorkstreamCategory.FirstOrDefaultAsync(x=>x.WorkstreamCategory==key, ct);
+                            if (e is null) return Results.NotFound();
+                            db.LookupWorkstreamCategory.Remove(e);
+                            break;
+                        }
+                    default:
+                        return Results.NotFound(new { message = $"Unknown lookup type '{type}'" });
+                }
+                await db.SaveChangesAsync(ct);
+                return Results.NoContent();
+            }
+            catch (DbUpdateException ex)
+            {
+                return Results.Conflict(new { message = ex.GetBaseException().Message });
+            }
+        });
+
         // Platforms API (for TreeNav)
         api.MapGet("/platforms", async (IPlatformService svc, CancellationToken ct) => Results.Ok(await svc.ListAsync(ct)));
 

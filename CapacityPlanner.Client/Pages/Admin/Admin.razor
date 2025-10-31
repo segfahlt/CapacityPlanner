@@ -1,7 +1,4 @@
 @page "/admin"
-@using System.Net.Http.Json
-@inject HttpClient Http
-@inject ISnackbar Snackbar
 
 <MudContainer MaxWidth="MaxWidth.False" Class="pa-4">
  <MudText Typo="Typo.h5" Class="mb-3">Administration</MudText>
@@ -28,17 +25,3 @@
  </MudTabs>
  </MudPaper>
 </MudContainer>
-
-@code {
- protected override async Task OnInitializedAsync()
- {
- try
- {
- var ping = await Http.GetFromJsonAsync<object>("/api/admin");
- }
- catch (Exception ex)
- {
- Snackbar.Add($"Admin API not available: {ex.Message}", Severity.Error);
- }
- }
-}
