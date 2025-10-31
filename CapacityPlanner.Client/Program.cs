@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
 using System.Net.Http;
+using CapacityPlanner.Client.Services;
 
 namespace CapacityPlanner.Client
 {
@@ -11,6 +12,7 @@ namespace CapacityPlanner.Client
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.Services.AddMudServices();
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+            builder.Services.AddScoped<AdminService>();
 
             await builder.Build().RunAsync();
         }

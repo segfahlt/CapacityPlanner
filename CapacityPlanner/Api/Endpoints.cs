@@ -13,6 +13,24 @@ public static class Endpoints
     {
         var api = routes.MapGroup("/api");
 
+        // Admin area (scaffold)
+        var admin = api.MapGroup("/admin");
+        // TODO: Add authorization policy once auth is wired up, e.g., RequireAuthorization("Admin")
+        admin.MapGet("", () => Results.Ok(new { status = "ok" }));
+        admin.MapGet("/summary", async (CapacityPlannerContext db, CancellationToken ct) =>
+        {
+            var summary = new
+            {
+                Platforms = await db.Platform.CountAsync(ct),
+                Modules = await db.Module.CountAsync(ct),
+                People = await db.Person.CountAsync(ct),
+                Roles = await db.Role.CountAsync(ct),
+                Skills = await db.Skill.CountAsync(ct),
+                Implementations = await db.Implementation.CountAsync(ct)
+            };
+            return Results.Ok(summary);
+        });
+
         // Platforms API (for TreeNav)
         api.MapGet("/platforms", async (IPlatformService svc, CancellationToken ct) => Results.Ok(await svc.ListAsync(ct)));
 

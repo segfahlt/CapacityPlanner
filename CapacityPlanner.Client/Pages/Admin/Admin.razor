@@ -1,0 +1,44 @@
+@page "/admin"
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.False" Class="pa-4">
+ <MudText Typo="Typo.h5" Class="mb-3">Administration</MudText>
+ <MudPaper Class="pa-3">
+ <MudTabs Color="Color.Primary" Rounded="true">
+ <MudTabPanel Text="Users" Icon="@Icons.Material.Filled.People">
+ <UsersAdmin />
+ </MudTabPanel>
+ <MudTabPanel Text="Roles" Icon="@Icons.Material.Filled.VerifiedUser">
+ <RolesAdmin />
+ </MudTabPanel>
+ <MudTabPanel Text="Skills" Icon="@Icons.Material.Filled.Psychology">
+ <SkillsAdmin />
+ </MudTabPanel>
+ <MudTabPanel Text="Lookups" Icon="@Icons.Material.Filled.Settings">
+ <LookupsAdmin />
+ </MudTabPanel>
+ <MudTabPanel Text="Platforms" Icon="@Icons.Material.Filled.ViewModule">
+ <PlatformsAdmin />
+ </MudTabPanel>
+ <MudTabPanel Text="Audit" Icon="@Icons.Material.Filled.History">
+ <AuditAdmin />
+ </MudTabPanel>
+ </MudTabs>
+ </MudPaper>
+</MudContainer>
+
+@code {
+ protected override async Task OnInitializedAsync()
+ {
+ try
+ {
+ var ping = await Http.GetFromJsonAsync<object>("/api/admin");
+ }
+ catch (Exception ex)
+ {
+ Snackbar.Add($"Admin API not available: {ex.Message}", Severity.Error);
+ }
+ }
+}
