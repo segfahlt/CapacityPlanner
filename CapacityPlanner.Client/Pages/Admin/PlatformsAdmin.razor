@@ -1,1 +1,93 @@
-<MudAlert Severity="Severity.Info">Platforms admin coming soon...</MudAlert>
+@using Common.CapacityPlanner.Dto
+
+<MudGrid Class="pa-2" GutterSize="GutterSize.Small">
+ <MudItem xs="12" md="3">
+ <MudPaper Class="pa-3">
+ <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+ <MudText Typo="Typo.subtitle1">Platforms</MudText>
+ <MudButton Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" OnClick="StartCreatePlatform" Disabled="@_platformEditing">Add</MudButton>
+ </MudStack>
+
+ @if (_platformEditing)
+ {
+ <MudDivider Class="mb-2" />
+ <MudForm>
+ <MudStack Spacing="2" AlignItems="AlignItems.End" Class="mb-2">
+ <MudTextField @bind-Value="_platformEditName" Label="Name" Required="true" />
+ <MudTextField @bind-Value="_platformEditDescription" Label="Description" />
+ <MudStack Row Spacing="1">
+ <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SavePlatformAsync">Save</MudButton>
+ <MudButton Variant="Variant.Outlined" OnClick="CancelPlatform">Cancel</MudButton>
+ </MudStack>
+ </MudStack>
+ </MudForm>
+ }
+
+ <MudTable Items="_platforms" Hover="true" Dense="true" RowClick="OnPlatformRowClick">
+ <HeaderContent>
+ <MudTh>Name</MudTh>
+ <MudTh>Description</MudTh>
+ <MudTh></MudTh>
+ </HeaderContent>
+ <RowTemplate>
+ <MudTd DataLabel="Name">@context.Name</MudTd>
+ <MudTd DataLabel="Description">@context.Description</MudTd>
+ <MudTd>
+ <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Disabled="@_platformEditing" OnClick="() => StartEditPlatform(context)" />
+ <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" Disabled="@_platformEditing" OnClick="() => DeletePlatformAsync(context)" />
+ </MudTd>
+ </RowTemplate>
+ </MudTable>
+ </MudPaper>
+ </MudItem>
+
+ <MudItem xs="12" md="9">
+ <MudPaper Class="pa-3">
+ <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+ <MudText Typo="Typo.subtitle1">Modules @if(_selectedPlatform is not null){<text>for @_selectedPlatform.Name</text>}</MudText>
+ <MudButton Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Disabled="@(_selectedPlatform is null || _moduleEditing)" OnClick="StartCreateModule">Add</MudButton>
+ </MudStack>
+
+ @if (_moduleEditing)
+ {
+ <MudDivider Class="mb-2" />
+ <MudForm>
+ <MudStack Spacing="2" AlignItems="AlignItems.End" Class="mb-2">
+ <MudTextField @bind-Value="_moduleEditName" Label="Name" Required="true" />
+ <MudTextField @bind-Value="_moduleEditDescription" Label="Description" />
+ <MudTextField @bind-Value="_moduleEditStatus" Label="Status" />
+ <MudStack Row Spacing="1">
+ <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SaveModuleAsync">Save</MudButton>
+ <MudButton Variant="Variant.Outlined" OnClick="CancelModule">Cancel</MudButton>
+ </MudStack>
+ </MudStack>
+ </MudForm>
+ }
+
+ @if (_selectedPlatform is null)
+ {
+ <MudAlert Severity="Severity.Info">Select a platform to manage modules.</MudAlert>
+ }
+ else
+ {
+ <MudTable Items="_modules" Hover="true" Dense="true">
+ <HeaderContent>
+ <MudTh>Name</MudTh>
+ <MudTh>Description</MudTh>
+ <MudTh>Status</MudTh>
+ <MudTh></MudTh>
+ </HeaderContent>
+ <RowTemplate>
+ <MudTd DataLabel="Name">@context.Name</MudTd>
+ <MudTd DataLabel="Description">@context.Description</MudTd>
+ <MudTd DataLabel="Status">@context.Status</MudTd>
+ <MudTd>
+ <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Disabled="@_moduleEditing" OnClick="() => StartEditModule(context)" />
+ <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" Disabled="@_moduleEditing" OnClick="() => DeleteModuleAsync(context)" />
+ </MudTd>
+ </RowTemplate>
+ </MudTable>
+ }
+ </MudPaper>
+ </MudItem>
+</MudGrid>

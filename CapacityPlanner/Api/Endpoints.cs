@@ -211,15 +211,83 @@ public static class Endpoints
             }
         });
 
-        // Platforms API (for TreeNav)
+        // Platforms API (for TreeNav + CRUD for Admin)
         api.MapGet("/platforms", async (IPlatformService svc, CancellationToken ct) => Results.Ok(await svc.ListAsync(ct)));
+        api.MapPost("/platforms", async (Common.CapacityPlanner.Dto.PlatformDto dto, IPlatformService svc, CancellationToken ct) =>
+        {
+            try
+            {
+                var id = await svc.CreateAsync(dto, ct);
+                return Results.Created($"/api/platforms/{id}", new { id });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.Conflict(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(new { message = ex.Message });
+            }
+        });
+        api.MapPut("/platforms/{id:guid}", async (Guid id, Common.CapacityPlanner.Dto.PlatformDto dto, IPlatformService svc, CancellationToken ct) =>
+        {
+            try
+            {
+                dto.PlatformId = id;
+                var ok = await svc.UpdateAsync(dto, ct);
+                return ok ? Results.NoContent() : Results.NotFound();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.Conflict(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(new { message = ex.Message });
+            }
+        });
+        api.MapDelete("/platforms/{id:guid}", async (Guid id, IPlatformService svc, CancellationToken ct) => (await svc.DeleteAsync(id, ct)) ? Results.NoContent() : Results.NotFound());
 
-        // Modules API filtered by platformId
+        // Modules API filtered by platformId + CRUD
         api.MapGet("/modules", async (Guid platformId, IModuleService svc, CancellationToken ct) =>
         {
             var mods = await svc.ListAsync(ct);
             return Results.Ok(mods.Where(m => m.PlatformId == platformId));
         });
+        api.MapPost("/modules", async (Common.CapacityPlanner.Dto.ModuleDto dto, IModuleService svc, CancellationToken ct) =>
+        {
+            try
+            {
+                var id = await svc.CreateAsync(dto, ct);
+                return Results.Created($"/api/modules/{id}", new { id });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.Conflict(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(new { message = ex.Message });
+            }
+        });
+        api.MapPut("/modules/{id:guid}", async (Guid id, Common.CapacityPlanner.Dto.ModuleDto dto, IModuleService svc, CancellationToken ct) =>
+        {
+            try
+            {
+                dto.ModuleId = id;
+                var ok = await svc.UpdateAsync(dto, ct);
+                return ok ? Results.NoContent() : Results.NotFound();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.Conflict(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(new { message = ex.Message });
+            }
+        });
+        api.MapDelete("/modules/{id:guid}", async (Guid id, IModuleService svc, CancellationToken ct) => (await svc.DeleteAsync(id, ct)) ? Results.NoContent() : Results.NotFound());
 
         // Implementations API filtered by moduleId + CRUD
         api.MapGet("/implementations", async (Guid moduleId, IImplementationService svc, CancellationToken ct) =>

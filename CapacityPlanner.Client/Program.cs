@@ -14,6 +14,9 @@ namespace CapacityPlanner.Client
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
             builder.Services.AddScoped<AdminService>();
             builder.Services.AddScoped<LookupService>();
+            builder.Services.AddScoped<RoleService>();
+            builder.Services.AddScoped<SkillService>();
+            builder.Services.AddScoped<PlatformApiService>();
 
             await builder.Build().RunAsync();
         }
